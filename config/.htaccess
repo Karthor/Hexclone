@@ -1,0 +1,15 @@
+<Files "game_config.ini">
+require all denied
+</Files>
+
+<Files "ram.ini">
+require all denied
+</Files>
+
+<Files "cpu.ini">
+require all denied
+</Files>
+
+<Files "hdd.ini">
+require all denied
+</Files>

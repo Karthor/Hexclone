@@ -1,0 +1,260 @@
+<?php
+//Setup...
+setTitle('Home');
+
+//Functions...
+function top_bar(){
+return '<div class="widget-title">
+<span class="icon"><span class="he16-monitor"></span></span>
+<h5>Control Panel</h5>
+</div>';	
+}
+
+function top_users_box(){
+return '<div class="widget-box">
+<div class="widget-title">
+<span class="icon"><span class="he16-ranking"></span></span>
+<h5>Top 7 users</h5>
+<a href="ranking"><span class="hide-phone label">View ranking</span></a>
+</div>
+<div class="widget-content nopadding border">
+<table class="table table-bordered table-striped with-check">
+<thead>
+<tr>
+<th>#</th>
+<th>User</th>
+<th>Reputation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><a href="#"></a></td>
+<td></td>
+</tr>
+<tr>
+<td>2</td>
+<td><a href="#"></a></td>
+<td></td>
+</tr>
+<tr>
+<td>3</td>
+<td><a href="#"></a></td>
+<td></td>
+</tr>
+<tr>
+<td>4</td>
+<td><a href="#"></a></td>
+<td></td>
+</tr>
+<tr>
+<td>5</td>
+<td><a href="#"></a></td>
+<td></td>
+</tr>
+<tr>
+<td>6</td>
+<td><a href="#"></a></td>
+<td></td>
+</tr>
+<tr>
+<td>7</td>
+<td><a href="#"></a></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>';	
+}
+
+function round_info($no, $round_name,$started){
+return '<div class="widget-box">
+<div class="widget-title">
+<span class="icon"><span class="icon-tab he16-tag_blue"></span></span>
+<h5>Round Info</h5>
+<span class="label label-info hide1024">Round 10</span>
+</div>
+<div class="widget-content nopadding border">
+<table class="table table-cozy table-bordered table-striped">
+<tbody>
+<tr>
+<td><span class="item">Name</span></td>
+<td>'. $round_name .'</td>
+</tr>
+<tr>
+<td><span class="item">Started</span></td>
+<td>'. $started .'</td>
+</tr>
+<tr>
+<td><span class="item">Age</span></td>
+<td>0 days</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>';	
+}
+
+
+function addWanted($ip, $reward){
+return '<div class="widget-content nopadding border">
+<table class="table table-cozy table-bordered table-striped">
+<tbody>
+<tr>
+<td><a class="black" href="internet?ip='. $ip .'">'. $ip .'</a></td>
+<td><font color="green">$'. $reward .'</font></td>
+</tr>
+</tbody>
+</table>
+</div>';	
+}
+
+function noWanted(){
+return '<div class="widget-content padding border">
+No wanted IPs ATM </div>';
+}
+
+function wanted_list(){
+return '<div class="widget-box">
+<div class="widget-title">
+<span class="icon"><span class="he16-thief"></span></span>
+<h5>FBI Wanted List</h5>
+<a href="internet?ip=210.117.143.141"><span class="label hide1024">FBI</span></a>
+</div>
+<div class="widget-content padding border">
+No wanted IPs ATM </div>
+</div>';	
+}
+
+function news_box(){
+return '<div class="widget-box">
+<div class="widget-title">
+<span class="icon"><i class="he16-news"></i></span>
+<h5>News</h5>
+<a href="news"><span class="label">View all</span></a>
+</div>
+<div class="widget-content nopadding border">
+<table class="table table-cozy table-bordered table-striped">
+<tbody>
+<tr>
+<td>
+Dont worry if your software list is empty, software reset happend!
+<span class="small">2017-06-17 05:44:12</span>
+</td>
+</tr>
+<tr>
+<td>
+</span><span class="small"></span>
+</td>
+</tr>
+<tr>
+<td>
+</span><span class="small"></span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>';	
+}
+
+function general_info(){
+if(internet::getStatus() == "online"){
+    $ip = internet::getIP();
+    $connectedIP = '<a class="black" href="internet.php?ip='. $ip .'">'. $ip .'</a>';
+} else {
+    $connectedIP = "No one";
+}
+    
+    
+return '<div class="widget-box">
+<div class="widget-title">
+<span class="icon"><i class="he16-pda"></i></span>
+<h5>General Info</h5>
+<span class="hide-phone label label-success">Basic</span>
+</div>
+<div class="widget-content nopadding border">
+<table class="table table-cozy table-bordered table-striped with-check">
+<tbody>
+<tr>
+<td><span class="he16-reputation heicon"></span></td>
+<td><span class="item">Reputation</span></td>
+<td>
+446,004 <span class="small">Ranked #164</span>
+</td>
+</tr>
+<tr>
+<td><span class="he16-taskmanager heicon"></span></td>
+<td><span class="item">Running tasks</span></td>
+<td><a class="black" href="processes">'. session::get("tasks") .'</a></span></td>
+</tr>
+<tr>
+<td><i class="he16-world heicon"></i></td>
+<td><span class="item">Connected to</span></td>
+<td>'. $connectedIP .'</td>
+</tr>
+<tr>
+<td><i class="he16-missions heicon"></i></td>
+<td><span class="item">Mission</span></td>
+<td>None</td>
+</tr>
+<tr>
+<td><i class="he16-clan heicon"></i></td>
+<td><span class="item">Clan</span></td>
+<td>Not a member</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>';	
+}
+
+function hardware_info(){
+
+return '<div class="widget-box">
+<div class="widget-title">
+<a href="hardware"><span class="icon"><i class="he16-server"></i></span></a>
+<h5>Hardware Information</h5>
+</div>
+<div class="widget-content nopadding border">
+<table class="table table-cozy table-bordered table-striped table-fixed with-check">
+<tbody>
+<tr>
+<td><span class="he16-cpu heicon"></span></td>
+<td><span class="item">Processor</span></td>
+<td>'. format_size(getTotalCPU(session::get("servers")),"cpu") .'</td>
+</tr>
+<tr>
+<td><span class="he16-hdd heicon"></span></td>
+<td><span class="item">Hard Drive</span></td>
+<td>'. format_size(getTotalHDD(session::get("servers")), "hdd") . '</td>
+</tr>
+<tr>
+<td><span class="he16-ram heicon"></span></td>
+<td><span class="item">Memory</span></td>
+<td>'. getTotalRAM(session::get("servers")) .' MB</td>
+</tr>
+<tr>
+<td><i class="he16-net heicon"></i></td>
+<td><span class="item">Internet</span></td>
+<td>'. format_size(getNET(session::get("netID")),"net") .'</td>
+</tr>
+<tr>
+<td><span class="he16-xhd heicon"></span></td>
+<td><span class="item">External HD</span></td>
+<td>None</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>';	
+}
+
+function breadcrumb(){
+return '
+<div id="breadcrumb">
+<a href="index" title="Go to Home" class="tip-bottom"><i class="fa fa-home"></i> Home</a>
+</div>';
+}
+?>

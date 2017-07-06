@@ -1,0 +1,14 @@
+<?php
+error_reporting(E_ALL & ~E_NOTICE);
+//Setup...
+setTitle('Hall of Fame');
+
+function breadcrumb(){
+return '
+<div id="breadcrumb">
+<a href="index" title="Go to Home" class="tip-bottom"><i class="fa fa-home"></i> Home</a>
+<a href="software" id="link0" class="current"> Software</a>
+</div>';
+}
+
+?>

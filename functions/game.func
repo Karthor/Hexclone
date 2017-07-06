@@ -1,0 +1,315 @@
+<?php
+
+    function resetIP(){
+        $newIP = GenerateIP();
+        return processes::create(3, 'Reset IP at <a href="software">localhost</a>', 'resetIP', 0, 'internet.php', $newIP, 'localhost');
+    }
+    
+    function getBTCValue(){
+        //$decode = file_get_contents('https://api.bitfinex.com/v1/ticker/btcusd');
+        //$btcPrice = json_decode($decode, true);
+        //$btcValue = number_format($btcPrice["last_price"],0,"","");
+        $btcValue = 1232;
+        return $btcValue;
+    }
+    
+    function calcSpam($minutes_elapsed, $infected_serverID){
+        $hardData = hardware::loadData(internet::getUserID($infected_serverID));
+        return getTotalCPU($hardData) * (((0.0025)/60) * $minutes_elapsed);
+    }
+    
+    function calcWarez($minutes_elapsed, $infected_serverID){
+        //$0.1 * MBIT + torrent value per hour
+        $net = 1000;
+        return ($net * (0.1/60)) * $minutes_elapsed;
+    }
+    
+    function calcMiner($minutes_elapsed, $infected_serverID){
+        $hardData = hardware::loadData(internet::getUserID($infected_serverID));
+        return getTotalCPU($hardData) * (((0.000010417)/60) * $minutes_elapsed);
+    }
+
+    function displayTime($time){
+        if(number_format((300-$time)/60) == 1){
+            $retTime = number_format((300-$time)/60) . " minute";
+        } elseif(number_format((300-$time)/60) >= 1){
+            $retTime = number_format((300-$time)/60) . " minutes";
+        } elseif(number_format((300-$time)) <= 59){
+            $retTime = number_format((300-$time)) . " seconds";
+        } elseif(number_format((300-$time)) == 1){
+            $retTime = number_format((300-$time)) . " second";
+        }
+        
+        return $retTime;
+    }
+    
+    function TimeDiffCol($time){
+        return time() - $time;
+    }
+    
+    function calculateDownloadTime($filesize){
+        $internetData = server::loadByServerID(internet::getServerID());
+        $playerData = server::loadByServerID(account::getServerID());
+        $net = getNET(min($internetData["net_id"], $playerData["net_id"]));
+        
+        return $filesize / ($net / 8);
+    }
+    
+    function debug($message) {
+        $output = $message;
+            if(is_array($output)){
+            $output = implode( ',', $output); 
+            }
+        echo "<script>console.log( 'Debug Objects: " . $output . "' );</script>";
+    }
+
+    function Bruteforce($ip){
+            $data = server::loadByIP($ip);
+            
+            $target_data = software::getTargetSoftware($data["ID"], "Hasher");
+            $attacker_data = software::getTargetSoftware(account::getServerID(), "Cracker");
+           
+            if($ip == "17.241.170.164"){
+               session::setAlert("hardware is not registered","error");     
+               return 0;
+            } 
+            
+            if($ip == account::getIP()){
+                    session::setAlert("Stop trying to hack yourself!","error");
+                    return 0;
+            }
+            
+            if($attacker_data == 0){
+                session::setAlert("You need an cracker!!","error");
+                return 0;
+            }
+
+            if(!internet::isHacked($ip, account::getUserID())){
+                    if($attacker_data >= $target_data){
+                            processes::create(8, 'Crack server <a href="internet.php?ip='. $ip .'">'. $ip .'</a>', "Bruteforce", 0, 'internet.php?action=login', $data["pass"]);
+                    } else {
+                            session::setAlert("Access denied: your cracker is not good enough.","error");
+                    }
+            }
+    }
+
+    function putLogIP($text, $ip){
+        $log_text = date("Y-m-d H:i") . " - " . $text . PHP_EOL;
+        log::setLog($ip, $log_text, 1);
+    }
+    
+    function printLink($url, $text){
+        return '<a href="'. $url .'">'. $text .'</a>';
+    }
+    
+    function checkOK($softID){
+        $targetTotSpace = getTotalHDD(account::getHardwareData());
+        $targetUsedSpace = software::checkUsedSpace(account::getServerID());
+        $softData = software::getSoftwareData($softID);
+        
+        
+        if(($targetUsedSpace + $softData["size"]) > $targetTotSpace){
+        session::setAlert("Not enough space!", "error");
+        redirect::go("internet?view=software");
+        }
+        
+        if(software::checkExists($softData["checksum"], account::getServerID())){
+        session::setAlert("You already have this software.", "error");
+        redirect::go("internet?view=software");
+        }
+        
+    return true;
+    }
+
+    function loginServer($user, $pass, $ip){
+    $data = server::loadByIP($ip);
+    $target_data = software::getTargetSoftware($data["ID"], "Hasher");
+    $attacker_data = software::getTargetSoftware(account::getServerID(), "Cracker");
+
+        if(internet::isHacked($ip, account::getUserID()) || $data["type"] == "npc_download"){
+            if($data["user"] == $user && $data["pass"] == $pass){
+                if($attacker_data >= $target_data || $data["type"] == "npc_download"){
+                    session::setArray("internet","status", 'online');
+                    session::setArray("internet","ip", $ip);
+                    session::setArray("internet","id", $data['ID']);
+                    putLogIP("[" . account::getIP() . "] logged in as root",$ip);
+                    putLogIP("localhost logged in to " . "[" . $ip . "] as root", account::getIP());
+                    session::setArray("internet", "onlineIP", $ip);
+                } else {
+                    session::setAlert("You don't have good enough cracker!.","error");
+                }
+            } else {
+                session::setAlert("Wrong password!","error");
+            }
+        } else {
+            session::setAlert("You need to hack or exploit before.","error");
+        }
+    }
+
+    function buyUpgrade($part, $id, $hID){
+        $data = hardware::loadServerHardware($hID);
+        if($data[$part . "_id"] < $id){
+
+        if($part=="ram"){
+            hardware::UpgradeRAM($hID, $id);
+            return true;
+        } elseif($part=="hdd") {
+            hardware::UpgradeHDD($hID, $id);
+            return true;
+        } elseif($part=="cpu") {
+            hardware::UpgradeCPU($hID, $id);	
+            return true;
+        }
+
+        //force update
+        session::set("servers", hardware::loadData(account::getUserID()));
+        }
+    }
+
+    function buyServer(){
+        hardware::buyServer(account::getUserID());
+        session::set("servers", hardware::loadData(account::getUserID()));
+        session::set("servers_num", sizeof(account::getHardwareData()));
+    }
+
+
+function getCPU($id){
+	if($id == 1){
+	return '500';	
+	} elseif($id==2){
+	return '1000';	
+	} elseif($id==3){
+	return '1500';	
+	} elseif($id==4){
+	return '2000';	
+	} elseif($id==5){
+	return '2500';	
+	} elseif($id==6){
+	return '3000';	
+	} elseif($id==7){
+	return '3500';	
+	} elseif($id==8){
+	return '4000';	
+	}
+}
+
+function getHDD($id){
+	if($id == 1){
+	return '100';	
+	} elseif($id==2){
+	return '500';	
+	} elseif($id==3){
+	return '1000';	
+	} elseif($id==4){
+	return '2000';	
+	} elseif($id==5){
+	return '5000';	
+	} elseif($id==6){
+	return '10000';	
+	}
+}
+
+function getRAM($id){
+	if($id == 1){
+	return '256';	
+	} elseif($id==2){
+	return '512';	
+	} elseif($id==3){
+	return '1024';	
+	} elseif($id==4){
+	return '2048';	
+	}
+}
+
+function getNET($id){
+	if($id == 1){
+	return '1';	
+	} elseif($id==2){
+	return '2';	
+	} elseif($id==3){
+	return '4';	
+	} elseif($id==4){
+	return '10';	
+	} elseif($id==5){
+	return '25';	
+	} elseif($id==6){
+	return '50';	
+	} elseif($id==7){
+	return '100';	
+	} elseif($id==8){
+	return '250';	
+	} elseif($id==9){
+	return '500';	
+	} elseif($id==10){
+	return '1000';	
+	}
+}
+
+function getTotalCPU($data){
+	$num=0;
+	for ($x = 0; $x < sizeof($data); $x++) {
+		$num += getCPU($data[$x]['cpu_id']);
+	} 
+	return $num;
+}
+
+function getTotalHDD($data){
+	$num=0;
+	for ($x = 0; $x < sizeof($data); $x++) {
+		$num += getHDD($data[$x]['hdd_id']);
+	} 
+	return $num;
+}
+
+function getTotalRAM($data){
+	$num=0;
+	for ($x = 0; $x < sizeof($data); $x++) {
+		$num += getRAM($data[$x]['ram_id']);
+	} 
+	return $num;
+}
+
+function GeneratePass($length = 8){
+    $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    $charactersLength = strlen($characters);
+    $randomString = '';
+    for ($i = 0; $i < $length; $i++) {
+        $randomString .= $characters[rand(0, $charactersLength - 1)];
+    }
+    return $randomString;
+}
+
+function GenerateIP(){
+	for ($x = 0; $x <= 3; $x++) {
+		$ip[$x] = rand(0, 255);
+	} 
+	return $ip[0] . '.' . $ip[1] . '.' . $ip[2] . '.' . $ip[3];
+}
+
+function format_size($size, $type){
+	if($type == "hdd"){
+		$prefix = "MB";
+	} elseif($type == "cpu"){
+		$prefix = "MHz";
+	} elseif($type == "net"){
+		$prefix = "Mbit/s";
+	}
+	
+	$total_size = $size;
+
+	if($size >= 1000){
+		$total_size = $size /1000;
+		
+		if($type == "hdd"){
+			$prefix = "GB";
+		} elseif($type == "cpu"){
+			$prefix = "GHz";
+		} elseif($type == "net"){
+		$prefix = "Gbit/s";
+		}
+	}
+	
+	return (number_format($total_size,1)+0) . ' ' . $prefix;
+}
+
+?>

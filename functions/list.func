@@ -1,0 +1,169 @@
+<?php
+error_reporting(E_ALL & ~E_NOTICE);
+//Setup...
+setTitle('Hacked Database');
+
+function Tabs($page){
+$code .= '<div class="widget-title"><ul class="nav nav-tabs">';
+if($page == ""){ $code .= '<li class="link active">'; } else { $code .= '<li class="link">'; }
+$code .= '<a href="list.php"><span class="icon-tab he16-list_ip"></span><span class="hide-phone">IP List</span></a></li>';
+if($page == "bankaccounts"){ $code .= '<li class="link active">'; } else { $code .= '<li class="link">'; }
+$code .= '<a href="?show=bankaccounts"><span class="icon-tab he16-list_bank"></span><span class="hide-phone">Bank Accounts</span></a></li>';
+if($page == "collect"){ $code .= '<li class="link active">'; } else { $code .= '<li class="link">'; }
+$code .= '<a href="?action=collect"><span class="icon-tab he16-list_collect"></span><span class="hide-phone">Collect money</span></a></li>';
+if($page == "ddos"){ $code .= '<li class="link active">'; } else { $code .= '<li class="link">'; }
+$code .= '<a href="?action=ddos"><span class="icon-tab he16-ddos"></span><span class="hide-phone">DDoS</span></a></li>';
+$code .= '<a href="https://wiki.hackerexperience.com/en:hacked_database"><span class="label label-info">Help</span></a></ul></div>';
+return $code;
+}
+
+function showDDos(){
+    return '<div class="span12">
+<div class="span6">
+<div class="widget-box">
+<div class="widget-title">
+<span class="icon"><span class="he16-ddos"></span></span>
+<h5>Launch DDoS attack</h5>
+</div>
+<div class="alert alert-error ">
+<b>Attention:</b> Your IP will be logged on <b>all</b> servers used to DDoS.
+</div>
+<div class="widget-content padding">You must have at least 3 DDoS virus running to perform an attack. </div>
+</div>
+</div>
+<div class="span6">
+<div class="widget-box">
+<div class="widget-title">
+<span class="icon"><span class="he16-ddos_list"></span></span>
+<h5>Running DDoS viruses</h5>
+<span class="label label-info">0</span>
+</div>
+<div class="widget-content padding">
+You havent installed any DDoS Virus yet.
+</div>
+</div>
+</div>
+</div>';
+}
+
+function showLastCollected(){
+$html .= '<div class="span12">
+<div class="widget-box text-left">
+<div class="widget-title">
+<span class="icon"><span class="he16-collect_info"></span></span>
+<h5>Collect Information</h5>
+<a href="list" class="label label-inverse">Go Back</a>
+</div><div class="widget-content">';
+$html .= PristLast();
+$html .= '</div></div><br/><center><a class="btn btn-danger" href="log">Clear your logs</a></center></div>';
+return $html;
+}
+
+function PristLast(){
+database::setTable("account_information");
+$lastData = database::select("userID", account::getUserID());
+$acc = $lastData["last_collected_acc"];
+$time = $lastData["last_collected_worked"];
+$money = $lastData["last_collected_generated"];
+$ip = $lastData["last_collected_ip"];
+$bonus = $lastData["last_collected_bonus"];
+$bonusMoney = $money*(($bonus/100)+1);
+
+if($time>60){
+$time = number_format($time / 60) . " hours";
+} else {
+$time = number_format($time) . " minutes";    
+}
+
+return 'Server <u>'. $ip .'</u> worked for <b>'. $time .'</b> and mailed <span class="red">375</span> emails, generating <span class="green"><b>$'.number_format($money).'</b></span><br/><br/>Collector bonus: <b>'. $bonus .'%</b><br/><br/><font color="green"><b>$'. number_format($bonusMoney) .'</b></font> were transferred to <u>#'. $acc .'</u>';
+}
+
+function showCollect(){
+    $html .= '<div class="span12">
+    <div class="span8">
+    <div class="widget-box text-left">
+    <div class="widget-title">
+    <span class="icon"><span class="he16-collect_info"></span></span>
+    <h5>Last Collect Information</h5>
+    </div><div class="widget-content">';
+    $html .= PristLast();  
+    $html .= '</div></div></div>
+    <div class="span4">
+    <div class="widget-box text-left">
+    <div class="widget-title">
+    <span class="icon"><span class="he16-collect"></span></span>
+    <h5>Collect virus money</h5>
+    </div>
+    <div class="widget-content">
+    <form action="" method="POST">
+    <input type="hidden" name="act" value="collect">
+    <div id="loading"><img src="images/ajax-money.gif"> Loading...</div><input type="hidden" id="accSelect" value=""><span id="desc-money"></span>
+    <br/><br/><br/>
+    <input class="btn btn-large btn-success" type="submit" value="Collect my money!">
+    </form></div></div></div></div>';   
+    return $html;
+}
+
+function addEntry($id, $ip, $pass){
+$data = server::loadByIP($ip);
+$net = getNET($data["net_id"]);
+$type = $data["extra"];
+$userID = internet::getUserID($data["ID"]);
+
+$totalHDD = format_size(getTotalHDD(hardware::loadData($userID)),"hdd");
+
+if($type == "VPC"){
+$type = '<span class="label pull-left label-success">VPC</span>';
+} else {
+$type = '<span class="label pull-left label-info">NPC</span>';
+}
+
+if(!$data){
+$ip = "ERROR 404";
+}
+
+return <<< ASD
+<li id="$id">
+<div class="span4">
+<div class="list-ip">
+<a href="internet?ip=$ip">$type<span id="ip">$ip</span></a>
+</div>
+<div class="list-user">
+<span class="he16-user heicon" title="User"></span><span class="small">root</span>
+<span class="he16-password heicon" title="Password"></span><span class="small">$pass</span>
+</div>
+</div>
+<div class="span4">
+<div class="list-virus">
+<span id="vname"></span>No running virus </div>
+<div class="list-time">
+<span class="small" id="v-1" title=""></span>
+</div>
+</div>
+<div class="span3">
+<div class="span6">
+<span class="small hide-phone"><span class="he16-net heicon icon-tab nomargin"></span>$net Mbit/s</span><br/>
+<span class="small hide-phone"><span class="he16-hdd heicon icon-tab nomargin"></span>$totalHDD</span>
+</div>
+<div class="span6">
+<span class="small hide-phone"><span class="he16-cpu heicon icon-tab nomargin"></span>?</span><br/>
+<span class="small hide-phone"><span class="he16-ram heicon icon-tab nomargin"></span>?</span>
+</div>
+</div>
+<div class="span1" style="text-align: right;">
+<div class="list-actions">
+<span class="tip-top delete-ip he16-delete icon-tab link" title="Remove" id="$id"></span>
+</div>
+</div>
+<div style="clear: both;"></div>
+</li>
+ASD;
+}
+
+function breadcrumb(){
+return '
+<div id="breadcrumb">
+<a href="index" title="Go to Home" class="tip-bottom"><i class="fa fa-home"></i> Home</a>
+</div>';
+}
+?>

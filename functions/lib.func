@@ -1,0 +1,38 @@
+<?php
+$GLOBALS["css"]='';
+$GLOBALS["js"]='';
+$GLOBALS["index_body"]='';
+$GLOBALS["game_name"] = $config["game_name"];
+
+function loadCSS($name){
+$GLOBALS["css"].= '<link rel="stylesheet" href="css/'. $name .'.css"/>' . PHP_EOL;
+}
+
+function setCodeBody($html){
+$GLOBALS["index_body"].= $html;
+}
+
+function loadJS($name){
+$GLOBALS["js"].= '<script src="js/'. $name .'.js"></script>' . PHP_EOL;	
+}
+
+function loadExtCSS($url){
+$GLOBALS["css"].= '<link rel="stylesheet" href="'. $url .'"/>' . PHP_EOL;
+}
+
+function loadExtJS($url){
+$GLOBALS["js"].= '<script src="'. $url .'"></script>' . PHP_EOL;	
+}
+
+function loadCodeJS($code){
+$GLOBALS["js"].= $code;	
+}
+
+function setTitle($page){
+$GLOBALS["title"] = '<title>'. $page .' - '. $GLOBALS["game_name"] .'</title>';
+}
+
+function setIcon($b64){
+$GLOBALS["icon"] = '<link rel="shortcut icon" href="data:image/png;base64,'. $b64 .'" type="image/x-icon"/>';	
+}
+?>

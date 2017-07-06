@@ -1,0 +1,411 @@
+<?php
+error_reporting(E_ALL & ~E_NOTICE);
+//Setup...
+setTitle('Internet');
+loadCSS("select2");
+
+function showBitcon($logged_in){
+database::setTable("bitcoin");
+if($data = database::select("userID", account::getUserID())){
+$hasBtc = 1;    
+}
+
+if($logged_in == 0){
+    $login_title = 'class="unlogged unlogged-tip" title="Login first!"';
+} else {
+    $login_title = 'class="link"';
+}
+
+
+$code .= '<p>Server 160.7.191.179 is <font color="green"><b>online</b></font><span class="label label-inverse pull-right">Bitcoin Market</span></p>    
+<div class="row-fluid">
+<div class="span8">
+<div class="widget-box">
+<div class="widget-title">
+<span class="icon"><span class="he16-btc"></span></span>
+<h5>Bitcoin Actions</h5>
+</div>
+<div class="alert alert-success nomargin">
+<center>Only public information is logged!</center>
+</div>
+<div class="widget-content padding center">
+<ul class="quick-actions">
+<li id="btc-buy" '. $login_title .'>
+<a>
+<i class="icon- he32-btc-buy"></i>
+Buy Bitcoins <br/>
+<span class="small">for <span class="green">$'. getBTCValue() .'</span></span>
+</a>
+</li>
+<li id="btc-sell" '. $login_title .'>
+<a>
+<i class="icon- he32-btc-sell"></i>
+Sell Bitcoins <br/>
+<span class="small">for <span class="green">$'. getBTCValue() .'</span></span>
+</a>
+</li>
+<li id="btc-transfer" '. $login_title .'>
+<a>
+<i class="icon- he32-btc-transfer"></i>
+Transfer Bitcoins <br/>
+<span class="small">No fees!</span>
+</a>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="span4">
+<div class="widget-box">
+<div class="widget-title">
+<span class="icon"><span class="he16-bank_bag"></span></span>';
+
+if($logged_in == 0){
+$code .= '<h5>Wallet Login</h5>
+</div>
+<div class="alert alert-success nomargin">
+<center>Anonymous login!</center>
+</div>
+<div class="widget-content padding center">
+<div class="control-group">
+<div class="controls">
+<div class="input-prepend">
+<span class="add-on"><i class="fa fa-user"></i></span><input type="text" id="btc-address" name="address" value="'. $data["btc_addr"] .'" style="width: 80%" value=""><br/>
+</div>
+</div>
+</div>
+<div class="control-group">
+<div class="controls">
+<div class="input-prepend">
+<span class="add-on"><i class="fa fa-lock"></i></span><input type="password" id="btc-key" name="key" value="'. $data["btc_key"] .'" style="width: 80%" value=""><br/>
+</div>
+</div>
+</div>
+<btn id="btc-login" class="btn btn-inverse"/>Login</btn>';
+if($hasBtc == 0){ $code .= ' or <btn id="btc-register" class="btn btn-success"/>Register for free</btn>'; }
+} else {
+$code .= '<h5>Wallet Overview</h5>
+</div>
+<div class="widget-content padding center">
+<div style="overflow: hidden;">
+<strong>Address:</strong> <br/>'. $data["btc_addr"] .'<br/><br/>
+<strong>Bitcoins:</strong> <br/>'. $data["value"] .' BTC<br/><br/>
+<btn id="btc-logout" class="btn btn-info">Log out</btn>
+</div>'; 
+}
+
+$code .= '</div></div></div></div><span id="modal" class="center"></span><script type="text/javascript">var logged=true;</script>';
+
+return $code;
+}
+
+function software_bar(){
+$userID = internet::getUserID(internet::getServerID());
+$hardData = hardware::loadData($userID);
+$size_used = software::checkUsedSpace(internet::getServerID());
+$total_size = getTotalHDD($hardData);
+$internetData = server::loadByServerID(internet::getServerID());
+
+
+$perc = ($size_used / $total_size) * 100;
+return '<div class="span3" style="text-align: center;">
+<div id="softwarebar">
+<form action="" method="GET">
+<input type="hidden" name="view" value="software">
+<input type="hidden" name="cmd" value="up">
+<input id="upload-id" type="hidden" name="id" value="">
+<div class="controls">
+<div id="toBeHidden">
+<span id="link" class="btn btn-primary">Upload...</span>
+</div>
+<input type="hidden" id="uploadSelect" style="width: 100%" value="">
+</div>
+<div id="uploadForm"></div>
+</form>
+<div style="margin-top: 5px;">
+<span class="small"><strong>'. getNET($internetData["net_id"]) .' Mbit</strong> ( 125KB/s - 62.5KB/s)</span>
+</div>
+<div class="hd-usage">
+ 
+<div class="chart easyPieChart chartpie" data-percent="'. $perc .'">
+<div id="downmeplz"><span id="percentpie"></span></div>
+</div>
+<div class="hd-usage-text">HDD Usage</div>
+<span class="small"><font color="green">'. (format_size($size_used,"hdd")) .'</font> / <font color="red">'. format_size($total_size,"hdd") . '</font></span>
+</div>
+<ul class="soft-but">
+<li>
+<a class="link create-txt">
+<i class="icon-" style="background-image: none;"><span class="heicon he32-text_create"></span></i>
+New text file </a>
+</li>
+<li>
+<a class="link create-folder">
+<i class="icon-" style="background-image: none;"><span class="heicon he32-folder_create"></span></i>
+Create folder </a>
+</li>
+</ul>
+<span id="modal"></span>
+<br/>
+</div>
+</div>
+</div>';
+}
+
+function showFiles($ip){
+$data = server::loadByIP($ip);
+
+if($data = software::loadHarddrive($data['ID'])){
+$softw = software::getSoftwares($data,1);
+} else {
+$softw = '<script>window.onload=function(){$(".table-software").replaceWith("<br/><center>There are no softwares to display.</center>");}</script>';
+}
+
+return <<< SOFTWARE
+<div class="span9">
+<table class="table table-cozy table-bordered table-striped table-software table-hover with-check">
+<thead>
+<tr>
+<th></th>
+<th>Software name</th>
+<th>Version</th>
+<th class="hide-phone">Size</th>
+<th>Actions</th>
+</tr>
+</thead>
+<tbody>
+$softw
+</tbody>
+</table>
+</div>
+SOFTWARE;
+}
+
+function breadcrumb(){
+return '<div id="breadcrumb">
+<a href="index" title="Go to Home" class="tip-bottom"><i class="fa fa-home"></i> Home</a>
+<a href="internet" id="link0"> Internet</a>
+<a href="internet?ip=160.7.191.179" id="link1" class="current"> 160.7.191.179</a>
+</div>';
+}
+
+function serverLog($text){
+return '<div class="widget-content padding noborder">
+<div class="span12">
+<div class="span12">
+<div class="span2 center"></div>
+<div class="span8 center">
+<form action="logEdit" method="POST" class="log">
+<input type="hidden" name="id" value="0">
+<textarea class="logarea" rows="15" name="log" spellcheck=FALSE>'. $text .'</textarea><br/><br/>
+<input class="btn btn-inverse" type="submit" value="Edit log file">
+</form>
+<br/>
+</div><div class="span2"></div></div></div></div>';	
+}
+
+function printLogin($user, $pass){
+$code .= '<div id="loginbox">
+<form id="loginform" class="form-vertical" action="" method="GET"/>
+<input type="hidden" name="action" value="login">
+<p>Enter username and password to continue.</p>
+<div class="control-group">
+<div class="controls">
+<div class="input-prepend">
+<span class="add-on"><i class="fa fa-user"></i></span><input type="text" name="user" placeholder="Username" value="'. $user .'"/>
+</div>
+</div>
+</div>
+<div class="control-group">
+<div class="controls">
+<div class="input-prepend">
+<span class="add-on"><i class="fa fa-lock"></i></span><input type="password" name="pass" placeholder="Password" value="'. $pass .'"/>
+</div>
+</div>
+</div>';
+
+if($user && $pass) {
+$code .= '<div class="form-actions">
+<span class="small pull-left" style="margin-top: -5px;"><strong>Username</strong>: '. $user .'</span><br/>
+<span class="small pull-left" style="margin-top: -5px;"><strong>Password</strong>: '. $pass .'</span>
+<span class="pull-right" style="margin-top: -20px;"><input type="submit" class="btn btn-inverse" value="Login"/></span>';
+} else {
+$code .= '<div class="form-actions">
+<span class="pull-right"><input type="submit" class="btn btn-inverse" value="Login"/></span>';
+}
+
+
+$code .= '</div></form></div>';	
+
+return $code;
+}
+
+function printHack(){
+$code = '<div class="span12 center" style="text-align: center;">
+Choose your attack method:<br/>
+<ul class="quick-actions">
+<li>';
+
+$data = software::getTargetSoftware(session::get("serverID"), "Cracker");
+if($data){
+$code .= '<a href="?action=hack&method=bf"><i class="icon- he32-bruteforce"></i>Bruteforce attack <br/>
+<span class="he16-bruteforce"></span> ' . number_format($data,1);
+} else {
+$code .= '<a href="#"><i class="icon- he32-bruteforce"></i><font color="red"> Bruteforce attack</font> <br/>
+<span class="small">No Cracker.</span>';	
+}
+$code .= '</a></li><li>';
+$data = software::getTargetSoftware(session::get("serverID"), "FTP Exploit");
+if($data){
+$code .= '<a href="#"><i class="icon- he32-exploit"></i>Exploit attack <br/>
+<span class="he16-ftp"></span> '. $data .' <span class="he16-ssh"></span><font color="red">&nbsp;&nbsp;-</font>';
+} else {
+$code .= '<a href="#"><i class="icon- he32-exploit"></i><font color="red"> Exploit attack</font> <br/>
+<span class="small">No Exploits.</span>';
+}
+$code .= '</a></li></ul></div>';
+
+
+return $code;
+}
+
+function browser_input($ip){
+return '<div class="widget-box">
+<div class="widget-content padding">
+<div class="span12">
+<form action="" method="get" class="form-horizontal">
+<div class="browser-input">
+IP address: <input class="browser-bar" name="ip" type="text" value="'. $ip .'"/>
+<input type="submit" class="btn btn-inverse" value="Go"> 
+<div style="float: right; padding-top: 5px;" class="hide-phone">
+<a href="internet?ip=1.2.3.4"><span class="he16-home" title="Home" style="margin-top: 4px;"></span></img></a>
+<a href="internet"><span class="he16-refresh" title="Refresh" style="margin-top: 4px;"></span></a>
+</div>
+</div>
+</form>
+</div>
+<div style="clear: both;"></div>
+</div>
+</div>';
+}
+
+function display_internet($data){
+$html = '
+<div class="span12">';
+
+$html .= printIP($data);
+
+$html .= '</div>';
+
+return $html;
+}
+
+function printIP($data){
+$code = '';
+
+$code .=  '<div class="span12">
+<p>Server '. $data["ip"] .' is <font color="green"><b>online</b></font>';
+if($data['extra']=="Whois"){ $code .=  '<span class="label label-warning pull-right">Whois</span></p>'. PHP_EOL; }
+if($data['extra']=="NPC"){ $code .=  '<span class="label label-info pull-right">NPC</span></p>'. PHP_EOL; }
+if($data['extra']=="VPC"){ $code .=  '<span class="label label-success pull-right">VPC</span></p>'. PHP_EOL; }
+if($data['extra']=="Bank"){ $code .=  '<span class="label label-inverse pull-right">Bank</span></p>'. PHP_EOL; }
+if($data['extra']=="Bitcoin Market"){ $code .=  '<span class="label label-inverse pull-right">Bitcoin Market</span></p>'. PHP_EOL; }
+if($data['extra']=="Important"){ $code .=  '<span class="label label-important pull-right">Important</span></p>'. PHP_EOL; }
+if($data['extra']=="ISP"){ $code .=  '<span class="label label-important pull-right">ISP</span></p>'. PHP_EOL; }
+$code .=  $data['text'];
+$code .=  '</div>';
+
+return $code;
+}
+
+function not_found(){
+return '
+404 - Page not found<br/>
+This ip does not exists.<br/><br/>
+<a href="internet?ip=1.2.3.4">Back to First Whois</a>';	
+}
+
+
+
+function recently_visited(){
+return '<div class="widget-box collapsible">
+<div class="widget-title">
+<a href="#history" data-toggle="collapse">
+<span class="icon"><span class="he16-page_copy"></span></span>
+<h5>Recently visited</h5>
+</a>
+</div>
+<div class="collapse in" id="history">
+<div class="widget-content">
+<div id="visited-ips"></div>
+</div>
+</div>
+</div>';
+}
+
+
+function important(){
+return '<div class="widget-box collapsible">
+<div class="widget-title">
+<a href="#important" data-toggle="collapse">
+<span class="icon"><span class="he16-important"></span></span>
+<h5>Important IPs</h5>
+<span class="label label-important hide1024">1</span>
+</a>
+</div>
+<div class="collapse in" id="important">
+<div class="widget-content">
+<a href="internet?ip=1.2.3.4">1.2.3.4<span class="hide1024 small"> First Whois</span></a><br/>
+</div>
+</div>
+</div>';
+}
+
+function navTabs_online($data){
+if($data == "software"){
+$bodytag = '<li class="link"><a href="?view=logs"><span class="icon-tab he16-internet_log"></span>Logs</a></li>
+<li class="link active"><a href="?view=software"><span class="he16-software icon-tab"></span>Softwares</a></li>
+<li class="link"><a href="?view=logout"><span class="icon-tab he16-internet_logout"></span><span class="hide-phone">Logout</span></a></li>';
+} else {
+$bodytag = '<li class="link active"><a href="?view=logs"><span class="icon-tab he16-internet_log"></span>Logs</a></li>
+<li class="link"><a href="?view=software"><span class="he16-software icon-tab"></span>Softwares</a></li>
+<li class="link"><a href="?view=logout"><span class="icon-tab he16-internet_logout"></span><span class="hide-phone">Logout</span></a></li>';
+}
+
+return <<< TAG
+<div class="widget-title"><ul class="nav nav-tabs">
+$bodytag
+<a href="https://wiki.hackerexperience.com/en:internet"><span class="label label-info">Help</span></a></ul></div>
+TAG;
+}
+
+function Tabs($page, $ip, $help=1){
+$data = server::loadByIP($ip);
+$code .= '<div class="widget-title"><ul class="nav nav-tabs">';
+if($page == "index"){ $code .= '<li class="link active">'; } else { $code .= '<li class="link">'; }
+$code .= '<a href="internet"><span class="he16-index icon-tab"></span></span>Index</a></li>';
+if($page == "login"){ $code .= '<li class="link active">'; } else { $code .= '<li class="link">'; }
+$code .= '<a href="?action=login"><span class="he16-login icon-tab"></span></span>Login</a></li>';
+if($page == "hack"){ $code .= '<li class="link active">'; } else { $code .= '<li class="link">'; }
+$code .= '<a href="?action=hack"><span class="icon-tab he16-internet_hack"></span>Hack</a></li>';
+
+if($data["extra"] == "Bank"){
+if($page == "bank_login"){ $code .= '<li class="link active">'; } else { $code .= '<li class="link">'; }
+$code .= '<a href="?action=login&type=bank"><span class="icon-tab he16-internet_bLogin"></span>Account login</a></li>';
+if($page == "bank_hack"){ $code .= '<li class="link active">'; } else { $code .= '<li class="link">'; }
+$code .= '<a href="?action=hack&type=bank"><span class="icon-tab he16-internet_bHack"></span>Hack account</a></li>';
+	if(!bank::isCreated($ip)){
+		if($page == "bank_register"){ $code .= '<li class="link active">'; } else { $code .= '<li class="link">'; }
+		$code .= '<a href="?action=register"><span class="icon-tab he16-internet_bRegister"></span>Register account</a></li>';
+	}
+}
+
+if($help == 1){
+$code .= '<a href="https://wiki.hackerexperience.com/en:hacking"><span class="label label-info">Help</span></a>';
+}
+
+$code .= '</ul></div>';
+
+return $code;
+}
+?>

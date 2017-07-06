@@ -1,0 +1,551 @@
+<?php
+error_reporting(E_ALL & ~E_NOTICE);
+//Setup...
+setTitle('Hardware');
+loadCSS("select2");
+$GLOBALS["servers_added"] = 0;
+
+//Functions...
+function emptyBox(){
+return '<div class="span4">
+</div>';
+}
+
+function changeNameButton(){
+return <<< HTML
+<a href="#changeName" data-toggle="modal"><button class="btn"><i class="icon-refresh"></i> Change server name</button></a>
+<div id="changeName" class="modal hide" tabindex="-1">
+<div class="modal-header">
+<button data-dismiss="modal" class="close" type="button">×</button>
+<h3>Change server name</h3>
+</div>
+<form action="hardware" method="POST">
+<input type="hidden" name="sID" value="4911432">
+<div class="modal-body">
+<p>What would you like to rename 'Server #1' for?</p>
+<input type="text" name="sName">
+</div>
+<div class="modal-footer">
+<input type="submit" value="Rename" class="btn btn-primary">
+<a data-dismiss="modal" class="btn" href="#">Cancel</a>
+</div>
+</form>
+</div>
+HTML;
+}
+
+function showServerList(){
+return <<< HTML
+<div class="span4">
+<div class="widget-box" style="text-align: left;">
+<div class="widget-title">
+<span class="label label-info" id="total">1</span>
+<span class="icon"><span class="he16-servers"></span></span>
+<h5>My servers</h5>
+</div>
+<div class="widget-content padding">
+<ul class="list">
+<a href="hardware?opt=upgrade&id=4911432">
+<li class="li-click hard-checked">
+<div class="span2 hard-ico">
+<span class="he32-pc"></span>
+</div>
+<div class="span10">
+<div class="list-ip">
+Server #1 </div>
+<div class="list-user">
+<span class="he16-cpu" style="margin-top: 4px;"></span>
+<small>500 MHz</small>
+<span class="he16-hdd" style="margin-top: 4px;"></span>
+<small>10 GB</small>
+<span class="he16-ram" style="margin-top: 4px;"></span>
+<small>256 MB</small>
+</div>
+</div>
+<div style="clear: both;"></div>
+</li>
+</a>
+</ul>
+</div>
+</div>  
+HTML;
+}
+
+function showUpgradeNET(){
+return '<div class="widget-box text-left">
+<div class="widget-title">
+<span class="icon"><span class="he16-upgrade_net"></span></span>
+<h5>Upgrade internet connection</h5>
+</div>
+<div class="widget-content nopadding">
+<table class="table table-bordered table-striped table-hardware table-hover">
+<thead>
+<tr>
+<th></th>
+<th>Name</th>
+<th>Power</th>
+<th>Price</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr id="net1" class="1">
+<td><span class="he16-internet"></span></td>
+<td>NET1</td>
+<td>1 Mbit</td>
+<td><font color="green"></font></td>
+<td></td>
+</tr>
+<tr id="net2" class="2">
+<td><span class="he16-internet"></span></td>
+<td>NET2</td>
+<td>2 Mbit</td>
+<td><font color="green">$<span id="price">50</span></font></td>
+<td><span class="he16-buy_hardware icon-tab tip-top upgrade-part link" title="Buy" id="2" value="net"></span></td>
+</tr>
+<tr id="net4" class="3">
+<td><span class="he16-internet"></span></td>
+<td>NET4</td>
+<td>4 Mbit</td>
+<td><font color="green">$<span id="price">99</span></font></td>
+<td><span class="he16-buy_hardware icon-tab tip-top upgrade-part link" title="Buy" id="4" value="net"></span></td>
+</tr>
+<tr id="net10" class="4">
+<td><span class="he16-internet"></span></td>
+<td>MEGA10</td>
+<td>10 Mbit</td>
+<td><font color="green">$<span id="price">250</span></font></td>
+<td><span class="he16-buy_hardware icon-tab tip-top upgrade-part link" title="Buy" id="10" value="net"></span></td>
+</tr>
+<tr id="net25" class="5">
+<td><span class="he16-internet"></span></td>
+<td>MEGA25</td>
+<td>25 Mbit</td>
+<td><font color="green">$<span id="price">1,000</span></font></td>
+<td><span class="he16-buy_hardware icon-tab tip-top upgrade-part link" title="Buy" id="25" value="net"></span></td>
+</tr>
+<tr id="net50" class="6">
+<td><span class="he16-internet"></span></td>
+<td>MEGA50</td>
+<td>50 Mbit</td>
+<td><font color="green">$<span id="price">2,500</span></font></td>
+<td><span class="he16-buy_hardware icon-tab tip-top upgrade-part link" title="Buy" id="50" value="net"></span></td>
+</tr>
+<tr id="net100" class="7">
+<td><span class="he16-internet"></span></td>
+<td>BROAD100</td>
+<td>100 Mbit</td>
+<td><font color="green">$<span id="price">10,000</span></font></td>
+<td><span class="he16-buy_hardware icon-tab tip-top upgrade-part link" title="Buy" id="100" value="net"></span></td>
+</tr>
+<tr id="net250" class="8">
+<td><span class="he16-internet"></span></td>
+<td>BROAD250</td>
+<td>250 Mbit</td>
+<td><font color="green">$<span id="price">25,000</span></font></td>
+<td><span class="he16-buy_hardware icon-tab tip-top upgrade-part link" title="Buy" id="250" value="net"></span></td>
+</tr>
+<tr id="net500" class="9">
+<td><span class="he16-internet"></span></td>
+<td>ULTRA500</td>
+<td>500 Mbit</td>
+<td><font color="green">$<span id="price">50,000</span></font></td>
+<td><span class="he16-buy_hardware icon-tab tip-top upgrade-part link" title="Buy" id="500" value="net"></span></td>
+</tr>
+<tr id="net1000" class="10">
+<td><span class="he16-internet"></span></td>
+<td>ULTRA1000</td>
+<td>1000 Mbit</td>
+<td><font color="green">$<span id="price">100,000</span></font></td>
+<td><span class="he16-buy_hardware icon-tab tip-top upgrade-part link" title="Buy" id="1000" value="net"></span></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>';
+}
+
+function printShop($shopName, $title){
+$shops = parse_ini_file("config/$shopName.ini", true);
+    
+$head = '<div class="widget-box text-left">
+<div class="widget-title">
+<span class="icon"><span class="he16-upgrade_hdd"></span></span>
+<h5>'.$title.'</h5>
+</div>
+<div class="widget-content nopadding">
+<table class="table table-bordered table-striped table-hardware table-hover">
+<thead>
+<tr>
+<th></th>
+<th>Name</th>
+<th>Power</th>
+<th>Price</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>';
+
+for ($x = 0; $x < sizeof($shops); $x++){
+    $body .= printItem($shopName, $shops[$x+1]["name"], $shops[$x+1]["power"], $shops[$x+1]["prefix"], $shops[$x+1]["price"], $x+1);
+}
+
+
+$footer = '</tbody>
+</table>
+</div>
+</div>';
+
+return $head . $body . $footer;
+
+}
+
+function printItem($partType, $name, $power, $prefix, $price, $index){
+return '<tr id="'.$partType.$power.'" class="'.$index.'">
+<td><span class="he16-'.$partType.'" style="margin-top: 4px;"></span></td>
+<td>'. $name .'</td>
+<td>'. $power .' '. $prefix .'</td>
+<td><font color="green">$<span id="price">'. $price .'</span></font></td>
+<td><span class="he16-buy_hardware heicon icon-tab tip-top upgrade-part link" title="Buy" id="'. $power .'" value="'.$partType.'"></span></td>
+</tr>';   
+}
+
+function showUpgradeHDD(){
+return '<div class="widget-box text-left">
+<div class="widget-title">
+<span class="icon"><span class="he16-upgrade_hdd"></span></span>
+<h5>Upgrade Hard Drive</h5>
+</div>
+<div class="widget-content nopadding">
+<table class="table table-bordered table-striped table-hardware table-hover">
+<thead>
+<tr>
+<th></th>
+<th>Name</th>
+<th>Power</th>
+<th>Price</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr id="hdd100" class="1">
+<td><span class="he16-hdd" style="margin-top: 4px;"></span></td>
+<td>miniSSD 100</td>
+<td>100 MB</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+<tr id="hdd500" class="2">
+<td><span class="he16-hdd" style="margin-top: 4px;"></span></td>
+<td>miniSSD 500</td>
+<td>500 MB</td>
+<td><font color="green">$<span id="price">99</span></font></td>
+<td><span class="he16-buy_hardware heicon icon-tab tip-top upgrade-part link" title="Buy" id="500" value="hdd"></span></td>
+</tr>
+<tr id="hdd1000" class="3">
+<td><span class="he16-hdd" style="margin-top: 4px;"></span></td>
+<td>SSD1</td>
+<td>1 GB</td>
+<td><font color="green">$<span id="price">300</span></font></td>
+<td><span class="he16-buy_hardware heicon icon-tab tip-top upgrade-part link" title="Buy" id="1000" value="hdd"></span></td>
+</tr>
+<tr id="hdd2000" class="4">
+<td><span class="he16-hdd" style="margin-top: 4px;"></span></td>
+<td>SSD2</td>
+<td>2 GB</td>
+<td><font color="green">$<span id="price">1,000</span></font></td>
+<td><span class="he16-buy_hardware heicon icon-tab tip-top upgrade-part link" title="Buy" id="2000" value="hdd"></span></td>
+</tr>
+<tr id="hdd5000" class="5">
+<td><span class="he16-hdd" style="margin-top: 4px;"></span></td>
+<td>SSD5</td>
+<td>5 GB</td>
+<td><font color="green">$<span id="price">3,000</span></font></td>
+<td><span class="he16-buy_hardware heicon icon-tab tip-top upgrade-part link" title="Buy" id="5000" value="hdd"></span></td>
+</tr>
+<tr id="hdd10000" class="6">
+<td><span class="he16-hdd" style="margin-top: 4px;"></span></td>
+<td>SSD10</td>
+<td>10 GB</td>
+<td><font color="green">$<span id="price">8,000</span></font></td>
+<td><span class="he16-buy_hardware heicon icon-tab tip-top upgrade-part link" title="Buy" id="10000" value="hdd"></span></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>';
+}
+
+function showUpgradeRAM(){
+return '<div class="widget-box text-left">
+<div class="widget-title">
+<span class="icon"><span class="he16-upgrade_ram"></span></span>
+<h5>Upgrade memory</h5>
+</div>
+<div class="widget-content nopadding">
+<table class="table table-bordered table-striped table-hardware table-hover">
+<thead>
+<tr>
+<th></th>
+<th>Name</th>
+<th>Power</th>
+<th>Price</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr id="ram256" class="1">
+<td><span class="he16-ram" style="margin-top: 4px;"></span></td>
+<td>Alzheimer</td>
+<td>256 MB</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+<tr id="ram512" class="2">
+<td><span class="he16-ram" style="margin-top: 4px;"></span></td>
+<td>King Ton</td>
+<td>512 MB</td>
+<td><font color="green">$<span id="price">99</span></font></td>
+<td><span class="he16-buy_hardware heicon icon-tab tip-top upgrade-part link" title="Buy" id="512" value="ram"></span></td>
+</tr>
+<tr id="ram1024" class="3">
+<td><span class="he16-ram" style="margin-top: 4px;"></span></td>
+<td>Cross 1G</td>
+<td>1024 MB</td>
+<td><font color="green">$<span id="price">500</span></font></td>
+<td><span class="he16-buy_hardware heicon icon-tab tip-top upgrade-part link" title="Buy" id="1024" value="ram"></span></td>
+</tr>
+<tr id="ram2048" class="4">
+<td><span class="he16-ram" style="margin-top: 4px;"></span></td>
+<td>Elephpant</td>
+<td>2048 MB</td>
+<td><font color="green">$<span id="price">2,500</span></font></td>
+<td><span class="he16-buy_hardware heicon icon-tab tip-top upgrade-part link" title="Buy" id="2048" value="ram"></span></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>';
+}
+
+function showUpgradeCPU(){
+return '<div class="widget-box text-left">
+<div class="widget-title">
+<span class="icon"><span class="he16-upgrade_cpu"></span></span>
+<h5>Upgrade processor</h5>
+</div>
+<div class="widget-content nopadding">
+<table class="table table-bordered table-striped table-hardware table-hover">
+<thead>
+<tr>
+<th></th>
+<th>Name</th>
+<th>Power</th>
+<th>Price</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr id="cpu500" class="1">
+<td><span class="he16-cpu" style="margin-top: 4px;"></span></td>
+<td>i286</td>
+<td>500 MHz</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+<tr id="cpu1000" class="2">
+<td><span class="he16-cpu" style="margin-top: 4px;"></span></td>
+<td>P2</td>
+<td>1000 MHz</td>
+<td><font color="green">$<span id="price">99</span></font></td>
+<td><span class="he16-buy_hardware heicon icon-tab tip-top upgrade-part link" title="Buy" id="1000" value="cpu"></span></td>
+</tr>
+<tr id="cpu1500" class="3">
+<td><span class="he16-cpu" style="margin-top: 4px;"></span></td>
+<td>P3</td>
+<td>1500 MHz</td>
+<td><font color="green">$<span id="price">150</span></font></td>
+<td><span class="he16-buy_hardware heicon icon-tab tip-top upgrade-part link" title="Buy" id="1500" value="cpu"></span></td>
+</tr>
+<tr id="cpu2000" class="4">
+<td><span class="he16-cpu" style="margin-top: 4px;"></span></td>
+<td>P4</td>
+<td>2000 MHz</td>
+<td><font color="green">$<span id="price">300</span></font></td>
+<td><span class="he16-buy_hardware heicon icon-tab tip-top upgrade-part link" title="Buy" id="2000" value="cpu"></span></td>
+</tr>
+<tr id="cpu2500" class="5">
+<td><span class="he16-cpu" style="margin-top: 4px;"></span></td>
+<td>Dual Core</td>
+<td>2500 MHz</td>
+<td><font color="green">$<span id="price">600</span></font></td>
+<td><span class="he16-buy_hardware heicon icon-tab tip-top upgrade-part link" title="Buy" id="2500" value="cpu"></span></td>
+</tr>
+<tr id="cpu3000" class="6">
+<td><span class="he16-cpu" style="margin-top: 4px;"></span></td>
+<td>Quad Core</td>
+<td>3000 MHz</td>
+<td><font color="green">$<span id="price">1,500</span></font></td>
+<td><span class="he16-buy_hardware heicon icon-tab tip-top upgrade-part link" title="Buy" id="3000" value="cpu"></span></td>
+</tr>
+<tr id="cpu3500" class="7">
+<td><span class="he16-cpu" style="margin-top: 4px;"></span></td>
+<td>AMD FX 8350</td>
+<td>3500 MHz</td>
+<td><font color="green">$<span id="price">2,000</span></font></td>
+<td><span class="he16-buy_hardware heicon icon-tab tip-top upgrade-part link" title="Buy" id="3500" value="cpu"></span></td>
+</tr>
+<tr id="cpu4000" class="8">
+<td><span class="he16-cpu" style="margin-top: 4px;"></span></td>
+<td>i7 4990k</td>
+<td>4000 MHz</td>
+<td><font color="green">$<span id="price">5,000</span></font></td>
+<td><span class="he16-buy_hardware heicon icon-tab tip-top upgrade-part link" title="Buy" id="4000" value="cpu"></span></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>';
+}
+
+function addServerBox($num, $data){
+	if($num == 1){
+		setCodeBody('<div class="row-fluid">');
+		setCodeBody('<div class="span4"></div>');
+		setCodeBody(serverBox($data,$GLOBALS["servers_added"]));
+		setCodeBody('</div>');
+	} elseif($num == 2){
+		setCodeBody('<div class="row-fluid">');
+		setCodeBody('<div class="span2"></div>');
+		setCodeBody(serverBox($data,$GLOBALS["servers_added"]));
+		setCodeBody(serverBox($data,$GLOBALS["servers_added"]));
+		setCodeBody('</div>');
+	} elseif($num == 3){
+		setCodeBody('<div class="row-fluid">');
+		setCodeBody(serverBox($data,$GLOBALS["servers_added"]));
+		setCodeBody(serverBox($data,$GLOBALS["servers_added"]));
+		setCodeBody(serverBox($data,$GLOBALS["servers_added"]));
+		setCodeBody('</div>');
+	}
+}
+
+function serverBox($data,$num){
+$GLOBALS["servers_added"]++;
+
+return '<div class="span4">
+<div class="widget-box" style="text-align: left;">
+<div class="widget-title">
+<span class="icon"><span class="he16-server"></span></span>
+<h5>Server #'. ($num+1) .'</h5>
+<a href="?opt=upgrade&id='. session::get("servers")[$num]['id'] .'"><span class="label">Upgrade</span></a>
+</div>
+<div class="widget-content padding">
+<ul class="list">
+<a href="?opt=upgrade&id='. session::get("servers")[$num]['id'] .'">
+<li class="li-click">
+<div class="span2 hard-ico">
+<span class="he32-pc"></span>
+</div>
+<div class="span10">
+<div class="list-ip">
+Server #'. ($num+1) .' </div>
+<div class="list-user">
+<span class="he16-cpu" style="margin-top: 4px;"></span>
+<small>'. format_size(getCPU(session::get("servers")[$num]['cpu_id']), "cpu") .'</small>
+<span class="he16-hdd" style="margin-top: 4px;"></span>
+<small>'. format_size(getHDD(session::get("servers")[$num]['hdd_id']), "hdd") .'</small>
+<span class="he16-ram" style="margin-top: 4px;"></span>
+<small>'. getRAM(session::get("servers")[$num]['ram_id']) .' MB</small>
+</div>
+</div>
+<div style="clear: both;"></div>
+</li>
+</a>
+</ul>
+</div>
+</div>
+</div>';	
+
+}
+
+function totalBox(){
+$cpu = getTotalCPU(session::get("servers"));
+$hdd = getTotalHDD(session::get("servers"));
+$net = getNET($_SESSION["netID"]);
+$cpu_pre = "MHz";
+$hdd_pre = "MB";
+$net_pre = "Mbit";
+
+if($hdd >= 1000){
+$hdd = $hdd / 1000;	
+$hdd_pre = "GB";
+}
+
+if($cpu >= 1000){
+$cpu = $cpu / 1000;
+$cpu_pre = "GHz";
+}
+
+if($net >= 1000){
+$net = $net / 1000;
+$net_pre = "Gbit";
+}
+	
+return '<ul class="hard-box">
+<li>
+<div class="left"><span class="he32-cpu32"></span></div>
+<div class="right">
+<strong>'. $cpu .'</strong>
+'. $cpu_pre .' </div>
+</li>
+<li>
+<div class="left"><span class="he32-hdd32"></span></div>
+<div class="right">
+<strong>'. $hdd .'</strong>
+'. $hdd_pre .' </div>
+</li>
+<li>
+<div class="left"><span class="he32-ddr-memory"></span></div>
+<div class="right">
+<strong>'. getTotalRAM(session::get("servers")) .'</strong>
+MB
+</div>
+</li>
+<li>
+<div class="left"><span class="he32-net32"></span></div>
+<div class="right">
+<strong>'. $net .'</strong>
+'. $net_pre .' </div>
+</li>
+</ul>';	
+}
+
+
+
+
+function tabs($page){
+    
+$code .= '<div class="widget-title"><ul class="nav nav-tabs">';    
+if($page == NULL){ $code .= '<li class="link active">'; } else { $code .= '<li class="link">'; }
+$code .= '<a href="hardware"><span class="icon-tab he16-servers"></span><span class="hide-phone">My hardware</span></a></li>';
+if($page == "upgrade"){ $code .= '<li class="link active">'; } else { $code .= '<li class="link">'; }
+$code .= '<a href="?opt=upgrade"><span class="icon-tab he16-upgradeserver"></span>Upgrade server</a></li>';
+if($page == "buy"){ $code .= '<li class="link active">'; } else { $code .= '<li class="link">'; }
+$code .= '<a href="?opt=buy"><span class="icon-tab he16-buyserver"></span><span class="hide-phone">Buy new server</span></a></li>';
+if($page == "internet"){ $code .= '<li class="link active">'; } else { $code .= '<li class="link">'; }
+$code .= '<a href="?opt=internet"><span class="he16-net icon-tab"></span><span class="hide-phone">Internet</a></a></li>';
+if($page == "xhd"){ $code .= '<li class="link active">'; } else { $code .= '<li class="link">'; }
+$code .= '<a href="?opt=xhd"><span class="icon-tab he16-xhd"></span><span class="hide-phone">External HD</span></a></li>';
+$code .= '<a href="https://wiki.hackerexperience.com/en:hardware"><span class="label label-info">Help</span></a>';
+$code .= '</ul></div>';	
+return $code;
+}
+
+function breadcrumb(){
+return '
+<div id="breadcrumb">
+<a href="index" title="Go to Home" class="tip-bottom"><i class="fa fa-home"></i> Home</a>
+<a href="hardware" id="link0" class="current"> Hardware</a>
+</div>';
+}
+?>

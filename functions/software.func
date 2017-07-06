@@ -1,0 +1,151 @@
+<?php
+error_reporting(E_ALL & ~E_NOTICE);
+//Setup...
+setTitle('Software');
+
+
+function addProcces($id,$time,$text){
+return '<ul class="list"><li><div class="span4 processBlock'. $id .'"><div class="proc-desc">'. $text .'</div></div><div class="span5">
+<div id="process'. $id .'">
+<div class="percent"></div>
+<div class="pbar"></div>
+<div class="elapsed"></div>
+</div></div><div class="span3 proc-action"><div class="span6"> <span class="he16-cpu"></span> <span class="small nomargin">100%</span><br/></div>
+<div class="span6" style="text-align: right;"><a href="processes?pid='. $id .'&action=pause"><span class="he16-play heicon"></span></a><a href="processes?pid='. $id .'&del=1"><span class="he16-cancel heicon"></span></a><br/>
+<span id="complete'. $id .'"></span></div></div><div style="clear:both;"></div></li></ul></div><div class="span3 center" style="padding-top: 8px;"><ul class="soft-but"><li>
+<a href="software">
+<i class="icon-" style="background-image: none;"><span class="he32-root"></span></i>
+My files
+</a>
+</li><li>
+<a href="processes">
+<i class="icon-" style="background-image: none;"><span class="he32-tasks"></span></i>
+My tasks
+</a>
+</li></ul>';
+}
+
+function displayProcess($uid, $pid){
+$data = processes::load($uid, $pid);
+$start = strtotime($data["start_time"]);
+$end = strtotime($data["end_time"]);
+$time_left = processes::getTimeleft($start, $end);
+setCodeBody(addProcces($pid,$time_left, $data["title"]));	
+
+$s = 'if(aOpts.loaded){$.ajax({type:"POST",url:"ajax.php",data:';
+
+$pbar = <<< JS
+<script type="text/javascript">$(document).ready(function(){jQuery.fn.anim_progressbar=function(aOpts){var iCms=1000;var iMms=60*iCms;var iHms=3600*iCms;var iDms=24*3600*iCms;var vPb=this;return this.each(function(){var iDuration=aOpts.finish-aOpts.start;$(vPb).children('.pbar').progressbar();var vInterval=setInterval(function(){var iLeftMs=aOpts.finish-new Date();var iElapsedMs=new Date()-aOpts.start,iDays=parseInt(iLeftMs/iDms),iHours=parseInt((iLeftMs-(iDays*iDms))/iHms),iMin=parseInt((iLeftMs-(iDays*iDms)-(iHours*iHms))/iMms),iSec=parseInt((iLeftMs-(iDays*iDms)-(iMin*iMms)-(iHours*iHms))/iCms),iPerc=(iElapsedMs>0)?iElapsedMs/iDuration*100:0;$(vPb).children('.percent').html('<b>'+iPerc.toFixed(1)+'%</b>');$(vPb).children('.elapsed').html(iHours+'h:'+iMin+'m:'+iSec+'s</b>');$(vPb).children('.pbar').children('.ui-progressbar-value').css('width',iPerc+'%');if(iPerc>=100){clearInterval(vInterval);$(vPb).children('.percent').html('<b>100%</b>');$(vPb).children('.elapsed').html('<b>Finished</b>');$s{func:'completeProcess',id:'$pid'},success:function(data){if(data.status=='OK'){window.location=data.redirect;}else{location.reload();}}});}}else{}},aOpts.interval);});}
+var iNow=new Date().setTime(new Date().getTime()-1);var iEnd=new Date().setTime(new Date().getTime()+$time_left*1000);$('#process$pid').anim_progressbar({start:iNow,finish:iEnd,interval:100,id:$pid,loaded:true});});</script>
+JS;
+
+loadCodeJS($pbar);
+}
+
+function external_bar(){
+return '<div class="span3" style="text-align: center;">
+<form action="" method="GET">
+<input type="hidden" name="page" value="external">
+<input type="hidden" name="action" value="upload">
+<input id="upload-id" type="hidden" name="id" value="">
+<div class="controls">
+<span id="link" class="btn btn-primary">Upload...</span>
+<input type="hidden" id="uploadSelect" style="width: 100%" value="">
+</div>
+<div id="uploadForm"></div>
+</form>
+<div class="hd-usage">
+<div class="percentage easyPieChart" data-percent="0">
+<strong><span></span>%</strong>
+</div>
+<div class="hd-usage-text">XHD usage</div>
+<span class="small"><font color="green">0 MB</font> / <font color="red">1 GB</font></span>
+</div>
+</div>';
+}
+
+function software_bar(){
+$total_size = getTotalHDD(account::getHardwareData());
+$perc = (software::checkUsedSpace(account::getServerID()) / $total_size) * 100;
+
+return '
+<div class="span3" style="text-align: center;">
+<div id="softwarebar">
+<div class="hd-usage">
+ 
+<div class="chart easyPieChart chartpie" data-percent="'. $perc .'">
+<div id="downmeplz"><span id="percentpie"></span></div>
+</div>
+<div class="hd-usage-text">HDD Usage</div>
+<span class="small"><font color="green">'. format_size($GLOBALS["size_used"],"hdd") .'</font> / <font color="red">'. format_size($total_size,"hdd") . '</font></span>
+</div>
+<ul class="soft-but">
+<li>
+<a class="link create-txt">
+<i class="icon-" style="background-image: none;"><span class="heicon he32-text_create"></span></i>
+New text file </a>
+</li>
+<li>
+<a class="link create-folder">
+<i class="icon-" style="background-image: none;"><span class="heicon he32-folder_create"></span></i>
+Create folder </a>
+</li>
+<li><a class="link hd-format">
+<i class="icon-" style="background-image: none;"><span class="heicon he32-previous"></span></i>
+Format HD
+</a>
+</li></ul>
+<span id="modal"></span>
+<br/>
+</div>
+</div>';	
+}
+
+function showFiles($serverID){
+
+if($data = software::loadHarddrive($serverID)){
+$softw = software::getSoftwares($data,0);
+} else {
+$softw = '<script>window.onload=function(){$(".table-software").replaceWith("<br/><center>There are no softwares to display.</center>");}</script>';
+}
+
+return <<< SOFTWARE
+<table class="table table-cozy table-bordered table-striped table-software table-hover with-check">
+<thead>
+<tr>
+<th></th>
+<th>Software name</th>
+<th>Version</th>
+<th class="hide-phone">Size</th>
+<th>Actions</th>
+</tr>
+</thead>
+<tbody>
+$softw
+</tbody>
+</table>
+SOFTWARE;
+
+}
+
+function navTab($page){
+$code .='<div class="widget-title"><ul class="nav nav-tabs">';
+if($page == "software"){ $code .= '<li class="link active">'; } else { $code .= '<li class="link">'; }
+$code .= '<a href="software.php"><span class="icon-tab he16-software"></span></span>Softwares</a></li>';
+if($page == "external"){ $code .= '<li class="link active">'; } else { $code .= '<li class="link">'; }  
+$code .= '<a href="?page=external"><span class="icon-tab he16-xhd"></span><span class="hide-phone">External HD</span></a></li>';
+$code .= '<a href="https://wiki.hackerexperience.com/en:softwares"><span class="label label-info">Help</span></a></ul></div>';	
+
+return $code;
+}
+
+
+function breadcrumb(){
+return '
+<div id="breadcrumb">
+<a href="index" title="Go to Home" class="tip-bottom"><i class="fa fa-home"></i> Home</a>
+<a href="software" id="link0" class="current"> Software</a>
+</div>';
+}
+
+?>

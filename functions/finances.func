@@ -1,0 +1,79 @@
+<?php
+error_reporting(E_ALL & ~E_NOTICE);
+//Setup...
+setTitle('Finances');
+
+//Functions...
+function fiance_box($money){
+return '<ul class="finance-box">
+<li>
+<div class="left"><span class="he32-money32"></span></div>
+<div class="right">
+<strong>$'. number_format($money) .'</strong>
+</div>
+</li>
+</ul>';	
+}
+
+function addAccountBox($data, $num){
+		if($num == 1){
+		setCodeBody('<div class="row-fluid">');
+		setCodeBody('<div class="span4"></div>');
+		setCodeBody(account_box($data));
+		setCodeBody('</div>');
+	} elseif($num == 2){
+		setCodeBody('<div class="row-fluid">');
+		setCodeBody('<div class="span2"></div>');
+		setCodeBody(account_box($data));
+		setCodeBody(account_box($data));
+		setCodeBody('</div>');
+	} elseif($num == 3){
+		setCodeBody('<div class="row-fluid">');
+		setCodeBody(account_box($data));
+		setCodeBody(account_box($data));
+		setCodeBody(account_box($data));
+		setCodeBody('</div>');
+	}
+}
+
+function account_box($data){
+$GLOBALS["bank_added"]++;
+
+$server_data = server::loadByIP($data[$GLOBALS["bank_added"]-1]["ip"]);
+return '<div class="span4">
+<div class="widget-box collapsible" style="text-align: left;">
+<div class="widget-title">
+<a href="#acc1" data-toggle="collapse">
+<span class="icon"><span class="he16-safe"></span></span>
+<h5><span class="small1024">Account #'. $GLOBALS["bank_added"] .'</span></h5>
+</a>
+<a href="internet?ip='. $data[$GLOBALS["bank_added"]-1]["ip"] .'"><span class="label">Access bank</span></a>
+</div>
+<div class="collapse in" id="acc1">
+<div class="widget-content padding center">
+<strong>'. $server_data["name"] .'</strong><br/><br/>
+<strong>Account Balance</strong><br/>
+<span class="green">$'. number_format($data[$GLOBALS["bank_added"]-1]["money"]) .'</span> at #'. $data[$GLOBALS["bank_added"]-1]["addr"] .'
+</div>
+</div>
+</div>
+</div>';	
+}
+
+function widget_title(){
+return '<div class="widget-title">
+<ul class="nav nav-tabs">
+<li class="link active"><a href="finances"><span class="icon-tab he16-wallet"></span>Finances</a></li>
+<a href="https://wiki.hackerexperience.com/en:finances"><span class="label label-info">Help</span></a>
+</ul>
+</div>';
+}
+
+function breadcrumb(){
+return '
+<div id="breadcrumb">
+<a href="index" title="Go to Home" class="tip-bottom"><i class="fa fa-home"></i> Home</a>
+<a href="finances" id="link0" class="current"> Finances</a>
+</div>';
+}
+?>

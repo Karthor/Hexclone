@@ -1,0 +1,92 @@
+<?php
+error_reporting(E_ALL & ~E_NOTICE);
+//Setup...
+setTitle('Task manager');
+loadJS("jquery.ui.custom");
+
+//Functions...
+function no_processes(){
+return '
+<div class="widget-content padding noborder">
+No process found
+</div>';	
+}
+
+function nav_bar(){
+return '<div class="widget-title">
+<ul class="nav nav-tabs">
+<li class="link active"><a href="?page=all"><span class="icon-tab he16-taskmanager"></span>All tasks</a></li>
+<li class="hide-phone link"><a href="?page=cpu"><span class="icon-tab he16-tasks_cpu"></span>CPU tasks</a></li>
+<li class="hide-phone link"><a href="?page=network"><span class="icon-tab he16-tasks_download"></span>Download manager</a></li>
+<li class="link"><a href="?page=running"><span class="he16-running icon-tab"></span><span class="hide-phone">Running softwares</span></a></li>
+<a href="https://wiki.hackerexperience.com/en:processes"><span class="label label-info">Help</span></a>
+</ul>
+</div>';	
+}
+
+function breadcrumb(){
+return '
+<div id="breadcrumb">
+<a href="index" title="Go to Home" class="tip-bottom"><i class="fa fa-home"></i> Home</a>
+</div>';
+}
+
+function generateJSBar($id,$time){
+return <<< BAR
+var iNow=new Date().setTime(new Date().getTime()-1);var iEnd=new Date().setTime(new Date().getTime()+$time*1000);$('#process$id').anim_progressbar({start:iNow,finish:iEnd,interval:100,id:$id,loaded:true});
+BAR;
+}
+
+function addProcces($id,$time,$text){
+if($time <= 0){ $proc_perc = 0;	} else { $proc_perc = (number_format(100/1)+0);  }
+
+return '<li>
+<div class="span4 process'. $id .'">
+<div class="proc-desc">'. $text .'</div>
+</div><div class="span5">
+<div id="process'. $id .'">
+<div class="percent"></div><div class="pbar"></div><div class="elapsed"></div></div></div><div class="span3 proc-action">
+<div class="span6"> <span class="he16-cpu"></span> <span class="small nomargin">'. $proc_perc .'%</span><br/></div>
+<div class="span6" style="text-align: right;"><a href="processes?pid='. $id .'&action=pause"><span class="he16-play heicon"></span></a><a href="processes?pid='. $id .'&del=1"><span class="he16-cancel heicon"></span></a><br/>
+<span id="complete'. $id .'"></span></div></div><div style="clear:both;"></div>
+</li>';
+}
+
+function displayProcess($uid, $pid){
+$data = processes::load($uid, $pid);
+$start = strtotime($data["start_time"]);
+$end = strtotime($data["end_time"]);
+$time_left = processes::getTimeleft($start, $end);
+setCodeBody(addProcces($pid,$time_left, $data["title"]));	
+
+$s = 'if(aOpts.loaded){$.ajax({type:"POST",url:"ajax.php",data:';
+
+$pbar = <<< JS
+<script type="text/javascript">$(document).ready(function(){jQuery.fn.anim_progressbar=function(aOpts){var iCms=1000;var iMms=60*iCms;var iHms=3600*iCms;var iDms=24*3600*iCms;var vPb=this;return this.each(function(){var iDuration=aOpts.finish-aOpts.start;$(vPb).children('.pbar').progressbar();var vInterval=setInterval(function(){var iLeftMs=aOpts.finish-new Date();var iElapsedMs=new Date()-aOpts.start,iDays=parseInt(iLeftMs/iDms),iHours=parseInt((iLeftMs-(iDays*iDms))/iHms),iMin=parseInt((iLeftMs-(iDays*iDms)-(iHours*iHms))/iMms),iSec=parseInt((iLeftMs-(iDays*iDms)-(iMin*iMms)-(iHours*iHms))/iCms),iPerc=(iElapsedMs>0)?iElapsedMs/iDuration*100:0;$(vPb).children('.percent').html('<b>'+iPerc.toFixed(1)+'%</b>');$(vPb).children('.elapsed').html(iHours+'h:'+iMin+'m:'+iSec+'s</b>');$(vPb).children('.pbar').children('.ui-progressbar-value').css('width',iPerc+'%');if(iPerc>=100){clearInterval(vInterval);$(vPb).children('.percent').html('<b>100%</b>');$(vPb).children('.elapsed').html('<b>Finished</b>');$s{func:'completeProcess',id:'$pid'},success:function(data){if(data.status=='OK'){window.location=data.redirect;}else{location.reload();}}});}}else{}},aOpts.interval);});}
+var iNow=new Date().setTime(new Date().getTime()-1);var iEnd=new Date().setTime(new Date().getTime()+$time_left*1000);$('#process$pid').anim_progressbar({start:iNow,finish:iEnd,interval:100,id:$pid,loaded:true});});</script>
+JS;
+
+loadCodeJS($pbar);
+}
+
+function displayAllProcesses($uid){
+$data = processes::loadAll($uid);
+
+for ($x = 0; $x < sizeof($data); $x++) {
+    if(!empty($data)){
+	$start = strtotime($data[$x]["start_time"]);
+	$end = strtotime($data[$x]["end_time"]);
+	$time_left = processes::getTimeleft($start, $end);
+	$barJS .= generateJSBar($data[$x]["pid"], $time_left);	
+	setCodeBody(addProcces($data[$x]["pid"],$time_left, $data[$x]["title"]));
+    }
+}
+
+$pbar = <<< JS
+<script type="text/javascript">$(document).ready(function(){jQuery.fn.anim_progressbar=function(aOpts){var iCms=1000;var iMms=60*iCms;var iHms=3600*iCms;var iDms=24*3600*iCms;var vPb=this;return this.each(function(){var iDuration=aOpts.finish-aOpts.start;$(vPb).children('.pbar').progressbar();var vInterval=setInterval(function(){var iLeftMs=aOpts.finish-new Date();var iElapsedMs=new Date()-aOpts.start,iDays=parseInt(iLeftMs/iDms),iHours=parseInt((iLeftMs-(iDays*iDms))/iHms),iMin=parseInt((iLeftMs-(iDays*iDms)-(iHours*iHms))/iMms),iSec=parseInt((iLeftMs-(iDays*iDms)-(iMin*iMms)-(iHours*iHms))/iCms),iPerc=(iElapsedMs>0)?iElapsedMs/iDuration*100:0;$(vPb).children('.percent').html('<b>'+iPerc.toFixed(1)+'%</b>');$(vPb).children('.elapsed').html(iHours+'h:'+iMin+'m:'+iSec+'s</b>');$(vPb).children('.pbar').children('.ui-progressbar-value').css('width',iPerc+'%');if(iPerc>=100){clearInterval(vInterval);$(vPb).children('.percent').html('<b>100%</b>');$(vPb).children('.elapsed').html('<b>Finished</b>');if(aOpts.loaded){document.getElementById('complete'+aOpts.id).innerHTML='<form action="" method="GET"><input type="hidden" name="pid" value="'+aOpts.id+'"><input type="submit" class="btn btn-mini" value="Complete"></form>';}}else{}},aOpts.interval);});}
+$barJS});</script>
+JS;
+
+loadCodeJS($pbar);
+}
+?>
