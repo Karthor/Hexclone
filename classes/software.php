@@ -205,29 +205,27 @@ class software {
     }
 
     public static function setName($data){
-        $fullname = $data["fullname"];
-        $fullname = $data["fullname"];
+        $fullname = htmlspecialchars($data["fullname"]);
 
         if($data["special"] == "virus"){
             if($data["installed"] == 1){
-                return '<td><span class="he16-96 tip-top" title="Virus"></span></td><td>'. $data["fullname"] .'</td>';  
+                return '<td><span class="he16-96 tip-top" title="Virus"></span></td><td>'. $fullname .'</td>';  
             } else {
-               return '<td><span class="'. self::getIcon($data["type"]) .' tip-top" title="Virus"></span></td><td>'. $data["fullname"] .'</td>';
+               return '<td><span class="'. self::getIcon($data["type"]) .' tip-top" title="Virus"></span></td><td>'. $fullname .'</td>';
             }
         } 
         
         if($data["special"] == "text"){
-             return '<td><span class="he16-30 tip-top" title="Text file"></span></td><td>'. $data["fullname"] .'</td>';  
+             return '<td><span class="he16-30 tip-top" title="Text file"></span></td><td>'. $fullname .'</td>';  
         }
         
         if($data["installed"] == 1){ 
             return '<td><span class=' . self::getIcon($data["type"]) .' tip-top" title="'. $data["type"] .'"></span></td><td><b>'. $fullname .'</b></td>';
         } else {
             return '<td><span class='. self::getIcon($data["type"]) .' tip-top" title="'. $data["type"] .'"></span></td><td>'. $fullname .'</td>';
-        }
-            
-            
+        }    
     }
+
 
 
     public static function setVersion($version){
